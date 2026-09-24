@@ -6,6 +6,6 @@ export default async function CurrentMeetingPage() {
   // Resolve "current" at request time, not at build time.
   await connection();
 
-  const meeting = getCurrentMeeting();
+  const meeting = await getCurrentMeeting();
   redirect(meeting ? `/meetings/${meeting.id}` : '/meetings');
 }

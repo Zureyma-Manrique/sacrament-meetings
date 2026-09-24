@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getCurrentMeetingHref } from '@/lib/routes';
 import { WARD_NAME } from '@/lib/site';
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-4">
@@ -13,7 +13,7 @@ export default function HomePage() {
           speakers, musical numbers, announcements, and ward business in one place.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href={getCurrentMeetingHref()} className="btn">
+          <Link href={await getCurrentMeetingHref()} className="btn">
             View this Sunday&rsquo;s program
           </Link>
           <Link href="/meetings" className="btn-secondary">
@@ -44,7 +44,9 @@ export default function HomePage() {
           </li>
           <li className="card">
             <h3 className="font-heading font-semibold">Review past meetings</h3>
-            <p className="mt-2 text-sm text-muted">Browse or filter earlier programs by date.</p>
+            <p className="mt-2 text-sm text-muted">
+              Search earlier programs by leader, speaker, meeting type, or date.
+            </p>
           </li>
           <li className="card">
             <h3 className="font-heading font-semibold">Print a clean copy</h3>

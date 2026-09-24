@@ -8,7 +8,7 @@ export default async function MeetingsLayout({ children }: LayoutProps<'/meeting
 
   const meetingLinks: NavLink[] = [
     { href: '/meetings', label: 'All programs', exact: true },
-    { href: getCurrentMeetingHref(), label: 'Current program', exact: true },
+    { href: await getCurrentMeetingHref(), label: 'Current program', exact: true },
   ];
 
   return (

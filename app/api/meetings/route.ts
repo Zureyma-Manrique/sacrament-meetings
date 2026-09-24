@@ -1,16 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { isIsoDate } from '@/lib/dates';
-import { getMeetings } from '@/lib/meetings-db';
+import { getMeetings, getMeetingsTotalPages } from '@/lib/meetings-db';
 
-export function GET(request: NextRequest) {
-  const date = request.nextUrl.searchParams.get('date') ?? undefined;
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get('query') ?? '';
+  const rawPage = searchParams.get('page') ?? '1';
 
-  if (date !== undefined && !isIsoDate(date)) {
+  if (!/^\d+$/.test(rawPage) || Number(rawPage) < 1) {
     return NextResponse.json(
-      { error: 'The "date" query parameter must be a valid date in YYYY-MM-DD format.' },
+      { error: 'The "page" query parameter must be a positive integer.' },
       { status: 400 },
     );
   }
 
-  return NextResponse.json(getMeetings(date));
+  const page = Number(rawPage);
+  const [meetings, totalPages] = await Promise.all([
+    getMeetings(query, page),
+    getMeetingsTotalPages(query),
+  ]);
+
+  return NextResponse.json({ meetings, page, totalPages });
 }

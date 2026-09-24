@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import MeetingDetail from '@/components/MeetingDetail';
 import PrintButton from '@/components/PrintButton';
 import { formatMeetingDate, currentSundayIso } from '@/lib/dates';
