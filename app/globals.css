@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/* Shared design tokens. Exposed to Tailwind as bg-primary, text-muted, border-border, etc. */
+:root {
+  --background: #f7f6f2;
+  --foreground: #1f2933;
+  --surface: #ffffff;
+  --muted: #52606d;
+  --border: #d9d6cc;
+  --primary: #1e4d6b;
+  --primary-foreground: #ffffff;
+  --primary-soft: #dbe7ef;
+  --focus: #c47f17;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-merriweather);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 64rem;
+  padding-inline: 1rem;
+}
+
+@utility focus-ring {
+  &:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-border bg-surface p-5 shadow-sm;
+  }
+
+  .badge {
+    @apply shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium text-primary;
+  }
+
+  .btn {
+    @apply focus-ring inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply focus-ring inline-flex items-center justify-center rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-soft;
+  }
+
+  .input {
+    @apply focus-ring rounded-md border border-border bg-surface px-3 py-2 text-sm;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+}
