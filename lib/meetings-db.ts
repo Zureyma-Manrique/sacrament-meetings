@@ -1,4 +1,4 @@
-import { mostRecentSundayIso, todayIso } from './dates';
+import { currentSundayIso, todayIso } from './dates';
 import type { SacramentMeeting } from './types';
 
 const BISHOP = 'Bishop Daniel Reyes';
@@ -151,11 +151,12 @@ export function getMeetingById(id: number): SacramentMeeting | undefined {
 }
 
 /**
- * The meeting for the most recent Sunday. If none was recorded for that
- * Sunday, falls back to the latest meeting on or before today.
+ * The meeting for the current Sunday (today on Sundays, otherwise the upcoming
+ * one). If none was planned for that Sunday, falls back to the latest meeting
+ * on or before today.
  */
 export function getCurrentMeeting(now: Date = new Date()): SacramentMeeting | undefined {
-  const sunday = mostRecentSundayIso(now);
+  const sunday = currentSundayIso(now);
   const exact = meetings.find((meeting) => meeting.date === sunday);
   if (exact) return exact;
 

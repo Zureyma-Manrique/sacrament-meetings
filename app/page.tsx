@@ -39,7 +39,7 @@ export default function HomePage() {
           <li className="card">
             <h3 className="font-heading font-semibold">See this week&rsquo;s program</h3>
             <p className="mt-2 text-sm text-muted">
-              Jump straight to the most recent Sunday&rsquo;s agenda.
+              Jump straight to the upcoming Sunday&rsquo;s agenda.
             </p>
           </li>
           <li className="card">
