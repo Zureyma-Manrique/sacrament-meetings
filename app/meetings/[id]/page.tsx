@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import MeetingDetail from '@/components/MeetingDetail';
 import PrintButton from '@/components/PrintButton';
 import { getBaseUrl } from '@/lib/api';
-import { formatMeetingDate, mostRecentSundayIso } from '@/lib/dates';
+import { formatMeetingDate, currentSundayIso } from '@/lib/dates';
 import type { SacramentMeeting } from '@/lib/types';
 
 async function fetchMeeting(id: string): Promise<SacramentMeeting> {
@@ -29,7 +29,7 @@ export default async function MeetingPage({ params }: PageProps<'/meetings/[id]'
   const { id } = await params;
   const meeting = await fetchMeeting(id);
 
-  const currentSunday = mostRecentSundayIso();
+  const currentSunday = currentSundayIso();
   const timing =
     meeting.date === currentSunday ? 'Current' : meeting.date < currentSunday ? 'Past' : 'Upcoming';
 

@@ -26,11 +26,15 @@ export function todayIso(now: Date = new Date()): string {
   }).format(now);
 }
 
-/** The most recent Sunday on or before today (ward time zone) as 'YYYY-MM-DD'. */
-export function mostRecentSundayIso(now: Date = new Date()): string {
+/**
+ * The Sunday the ward is currently preparing for, as 'YYYY-MM-DD': today if
+ * today is Sunday, otherwise the upcoming Sunday (ward time zone).
+ */
+export function currentSundayIso(now: Date = new Date()): string {
   const [year, month, day] = todayIso(now).split('-').map(Number);
   const today = new Date(Date.UTC(year, month - 1, day));
-  today.setUTCDate(today.getUTCDate() - today.getUTCDay());
+  const daysUntilSunday = (7 - today.getUTCDay()) % 7;
+  today.setUTCDate(today.getUTCDate() + daysUntilSunday);
   return today.toISOString().slice(0, 10);
 }
 
