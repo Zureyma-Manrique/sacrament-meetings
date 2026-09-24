@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { getCurrentMeetingHref } from '@/lib/routes';
 import { WARD_NAME } from '@/lib/site';
 
 export default function HomePage() {
@@ -12,7 +13,7 @@ export default function HomePage() {
           speakers, musical numbers, announcements, and ward business in one place.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href="/meetings/current" className="btn">
+          <Link href={getCurrentMeetingHref()} className="btn">
             View this Sunday&rsquo;s program
           </Link>
           <Link href="/meetings" className="btn-secondary">

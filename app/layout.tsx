@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter, Merriweather } from 'next/font/google';
+import { connection } from 'next/server';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import NavLinks from '@/components/NavLinks';
+import NavLinks, { type NavLink } from '@/components/NavLinks';
+import { getCurrentMeetingHref } from '@/lib/routes';
 import { WARD_NAME } from '@/lib/site';
 import './globals.css';
 
@@ -25,7 +27,16 @@ export const metadata: Metadata = {
   description: `Plan, view, and print sacrament meeting programs for the ${WARD_NAME}.`,
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
+  // "This Sunday" depends on today's date, so resolve it per request.
+  await connection();
+
+  const mainLinks: NavLink[] = [
+    { href: '/', label: 'Home', exact: true },
+    { href: '/meetings', label: 'Meetings' },
+    { href: getCurrentMeetingHref(), label: 'This Sunday', exact: true },
+  ];
+
   return (
     <html lang="en" className={`${inter.variable} ${merriweather.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
@@ -38,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <Header />
         <div className="border-b border-border bg-surface print:hidden">
           <div className="container-page py-2">
-            <NavLinks />
+            <NavLinks links={mainLinks} />
           </div>
         </div>
         <main id="main-content" className="container-page flex-1 py-8 print:py-0">

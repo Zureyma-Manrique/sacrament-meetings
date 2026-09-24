@@ -10,14 +10,8 @@ export interface NavLink {
   exact?: boolean;
 }
 
-const MAIN_LINKS: NavLink[] = [
-  { href: '/', label: 'Home', exact: true },
-  { href: '/meetings', label: 'Meetings' },
-  { href: '/meetings/current', label: 'This Sunday' },
-];
-
 interface NavLinksProps {
-  links?: NavLink[];
+  links: NavLink[];
   /** Accessible name for the navigation landmark. */
   label?: string;
 }
@@ -27,7 +21,7 @@ function isActive(pathname: string, link: NavLink): boolean {
   return pathname === link.href || pathname.startsWith(`${link.href}/`);
 }
 
-export default function NavLinks({ links = MAIN_LINKS, label = 'Main' }: NavLinksProps) {
+export default function NavLinks({ links, label = 'Main' }: NavLinksProps) {
   const pathname = usePathname();
 
   // With nested links (e.g. /meetings and /meetings/current), only the most specific match is active.
