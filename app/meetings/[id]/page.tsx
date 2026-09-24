@@ -3,31 +3,26 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import MeetingDetail from '@/components/MeetingDetail';
 import PrintButton from '@/components/PrintButton';
-import { getBaseUrl } from '@/lib/api';
 import { formatMeetingDate, currentSundayIso } from '@/lib/dates';
+import { getMeetingById } from '@/lib/meetings-db';
 import type { SacramentMeeting } from '@/lib/types';
 
-async function fetchMeeting(id: string): Promise<SacramentMeeting> {
-  const url = new URL(`/api/meetings/${encodeURIComponent(id)}`, await getBaseUrl());
-  const response = await fetch(url, { cache: 'no-store' });
-
-  // 400 (malformed id) and 404 (unknown id) both mean there is no such program page.
-  if (response.status === 400 || response.status === 404) notFound();
-  if (!response.ok) {
-    throw new Error(`Failed to load meeting ${id} (HTTP ${response.status}).`);
-  }
-  return (await response.json()) as SacramentMeeting;
+function loadMeeting(id: string): SacramentMeeting {
+  // Only plain positive integers are valid IDs; malformed and unknown IDs both have no program page.
+  const meeting = /^\d+$/.test(id) ? getMeetingById(Number(id)) : undefined;
+  if (!meeting) notFound();
+  return meeting;
 }
 
 export async function generateMetadata({ params }: PageProps<'/meetings/[id]'>): Promise<Metadata> {
   const { id } = await params;
-  const meeting = await fetchMeeting(id);
+  const meeting = loadMeeting(id);
   return { title: `Program for ${formatMeetingDate(meeting.date)}` };
 }
 
 export default async function MeetingPage({ params }: PageProps<'/meetings/[id]'>) {
   const { id } = await params;
-  const meeting = await fetchMeeting(id);
+  const meeting = loadMeeting(id);
 
   const currentSunday = currentSundayIso();
   const timing =

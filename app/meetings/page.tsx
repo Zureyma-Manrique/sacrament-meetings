@@ -1,24 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import MeetingCard from '@/components/MeetingCard';
-import { getBaseUrl } from '@/lib/api';
 import { formatMeetingDate, isIsoDate } from '@/lib/dates';
-import type { SacramentMeeting } from '@/lib/types';
+import { getMeetings } from '@/lib/meetings-db';
 
 export const metadata: Metadata = {
   title: 'Meeting Programs',
 };
-
-async function fetchMeetings(date?: string): Promise<SacramentMeeting[]> {
-  const url = new URL('/api/meetings', await getBaseUrl());
-  if (date) url.searchParams.set('date', date);
-
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error(`Failed to load meetings (HTTP ${response.status}).`);
-  }
-  return (await response.json()) as SacramentMeeting[];
-}
 
 export default async function MeetingsPage({ searchParams }: PageProps<'/meetings'>) {
   const { date: rawDate } = await searchParams;
@@ -26,7 +14,7 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
   const invalidDate = requestedDate !== undefined && !isIsoDate(requestedDate);
   const date = invalidDate ? undefined : requestedDate;
 
-  const meetings = invalidDate ? [] : await fetchMeetings(date);
+  const meetings = invalidDate ? [] : getMeetings(date);
 
   return (
     <div className="flex flex-col gap-6">
