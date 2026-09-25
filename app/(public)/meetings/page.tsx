@@ -17,6 +17,8 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
   const currentPage = typeof rawPage === 'string' && /^[1-9]\d*$/.test(rawPage) ? Number(rawPage) : 1;
 
   const totalPages = await getMeetingsTotalPages(query);
+  // Past the last page (e.g. ?page=99), show the last page instead of an empty list.
+  const page = Math.min(currentPage, Math.max(totalPages, 1));
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,10 +31,10 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
           {query ? <>Programs matching &ldquo;{query}&rdquo;</> : 'All programs'}
         </h2>
         {/* Keyed so the skeleton shows again while each new search or page loads. */}
-        <Suspense key={`${query}:${currentPage}`} fallback={<MeetingsListSkeleton />}>
-          <MeetingsList query={query} currentPage={currentPage} />
+        <Suspense key={`${query}:${page}`} fallback={<MeetingsListSkeleton />}>
+          <MeetingsList query={query} currentPage={page} />
         </Suspense>
-        <Pagination totalPages={totalPages} />
+        <Pagination totalPages={totalPages} currentPage={page} />
       </section>
     </div>
   );

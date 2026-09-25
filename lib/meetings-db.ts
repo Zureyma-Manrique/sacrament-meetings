@@ -43,22 +43,35 @@ export function parseMeetingId(raw: string): number | null {
 }
 
 /**
+ * WHERE condition shared by the search queries. Speakers are matched on name
+ * and topic only, so searching "speaker" or "topic" doesn't hit the JSON keys.
+ */
+function matchesQuery(query: string) {
+  // Escape LIKE wildcards so "%" and "_" in the search box match literally.
+  const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
+  return sql`(
+    presiding ILIKE ${pattern} OR
+    conducting ILIKE ${pattern} OR
+    meeting_type ILIKE ${pattern} OR
+    date::text ILIKE ${pattern} OR
+    EXISTS (
+      SELECT 1 FROM jsonb_array_elements(speakers) AS s
+      WHERE s->>'name' ILIKE ${pattern} OR s->>'topic' ILIKE ${pattern}
+    )
+  )`;
+}
+
+/**
  * One page of meetings, newest first, matching `query` (case-insensitive) in the
- * presiding or conducting leader, meeting type, speakers, or date.
+ * presiding or conducting leader, meeting type, speaker names and topics, or date.
  */
 export async function getMeetings(query = '', currentPage = 1): Promise<SacramentMeeting[]> {
-  const pattern = `%${query}%`;
   const offset = (Math.max(1, currentPage) - 1) * ITEMS_PER_PAGE;
 
   const rows = await sql`
     SELECT ${MEETING_COLUMNS}
     FROM meetings
-    WHERE
-      presiding ILIKE ${pattern} OR
-      conducting ILIKE ${pattern} OR
-      meeting_type ILIKE ${pattern} OR
-      speakers::text ILIKE ${pattern} OR
-      date::text ILIKE ${pattern}
+    WHERE ${matchesQuery(query)}
     ORDER BY date DESC
     LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
   `;
@@ -67,17 +80,10 @@ export async function getMeetings(query = '', currentPage = 1): Promise<Sacramen
 
 /** Number of pages `getMeetings` can return for `query` (0 when nothing matches). */
 export async function getMeetingsTotalPages(query = ''): Promise<number> {
-  const pattern = `%${query}%`;
-
   const rows = await sql`
     SELECT COUNT(*) AS count
     FROM meetings
-    WHERE
-      presiding ILIKE ${pattern} OR
-      conducting ILIKE ${pattern} OR
-      meeting_type ILIKE ${pattern} OR
-      speakers::text ILIKE ${pattern} OR
-      date::text ILIKE ${pattern}
+    WHERE ${matchesQuery(query)}
   `;
   return Math.ceil(Number(rows[0].count) / ITEMS_PER_PAGE);
 }

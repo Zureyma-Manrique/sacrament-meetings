@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
 interface MeetingSearchProps {
@@ -11,6 +12,15 @@ export default function MeetingSearch({ placeholder = 'Search meetings…' }: Me
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
+  const urlQuery = searchParams.get('query') ?? '';
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // The input is uncontrolled, so update it when the URL changes from outside
+  // (back/forward, a shared link) but never while the user is typing in it.
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input && document.activeElement !== input) input.value = urlQuery;
+  }, [urlQuery]);
 
   // Wait until typing pauses so each keystroke doesn't trigger a new database query.
   const handleSearch = useDebouncedCallback((term: string) => {
@@ -32,10 +42,11 @@ export default function MeetingSearch({ placeholder = 'Search meetings…' }: Me
         Search programs
       </label>
       <input
+        ref={inputRef}
         id="meeting-search"
         type="search"
         placeholder={placeholder}
-        defaultValue={searchParams.get('query') ?? ''}
+        defaultValue={urlQuery}
         onChange={(event) => handleSearch(event.target.value)}
         className="input w-full sm:max-w-md"
         aria-describedby="meeting-search-hint"

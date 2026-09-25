@@ -5,4 +5,5 @@ export const MEETING_TYPE_LABELS: Record<MeetingType, string> = {
   regular: 'Sacrament Meeting',
   stake: 'Stake Conference',
   general: 'General Conference',
+  special: 'Special Meeting',
 };

@@ -5,12 +5,13 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 interface PaginationProps {
   totalPages: number;
+  /** Page the server rendered, already validated and clamped to 1..totalPages. */
+  currentPage: number;
 }
 
-export default function Pagination({ totalPages }: PaginationProps) {
+export default function Pagination({ totalPages, currentPage }: PaginationProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
 
   if (totalPages <= 1) return null;
 

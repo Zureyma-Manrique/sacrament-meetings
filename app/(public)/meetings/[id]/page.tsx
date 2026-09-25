@@ -5,25 +5,27 @@ import { cache } from 'react';
 import MeetingDetail from '@/components/MeetingDetail';
 import PrintButton from '@/components/PrintButton';
 import { formatMeetingDate, currentSundayIso } from '@/lib/dates';
-import { getMeetingById } from '@/lib/meetings-db';
+import { getMeetingById, parseMeetingId } from '@/lib/meetings-db';
 import type { SacramentMeeting } from '@/lib/types';
 
-function loadMeeting(id: string): SacramentMeeting {
-  // Only plain positive integers are valid IDs; malformed and unknown IDs both have no program page.
-  const meeting = /^\d+$/.test(id) ? getMeetingById(Number(id)) : undefined;
+// Cached so generateMetadata and the page share one database query per request.
+const loadMeeting = cache(async (rawId: string): Promise<SacramentMeeting> => {
+  // Malformed, out-of-range, and unknown IDs all have no program page.
+  const id = parseMeetingId(rawId);
+  const meeting = id === null ? undefined : await getMeetingById(id);
   if (!meeting) notFound();
   return meeting;
-}
+});
 
 export async function generateMetadata({ params }: PageProps<'/meetings/[id]'>): Promise<Metadata> {
   const { id } = await params;
-  const meeting = loadMeeting(id);
+  const meeting = await loadMeeting(id);
   return { title: `Program for ${formatMeetingDate(meeting.date)}` };
 }
 
 export default async function MeetingPage({ params }: PageProps<'/meetings/[id]'>) {
   const { id } = await params;
-  const meeting = loadMeeting(id);
+  const meeting = await loadMeeting(id);
 
   const currentSunday = currentSundayIso();
   const timing =
