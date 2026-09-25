@@ -1,12 +1,22 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { currentSundayIso, todayIso } from './dates';
 import type { SacramentMeeting } from './types';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set. Add it to .env.local (see db/schema.sql).');
-}
+let client: NeonQueryFunction<false, false> | undefined;
 
-const sql = neon(process.env.DATABASE_URL);
+/**
+ * The Neon client, created on first use. Checking DATABASE_URL here rather than
+ * at import time lets `next build` run without it, since every page queries at request time.
+ */
+function db(): NeonQueryFunction<false, false> {
+  if (!client) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is not set. Add it to .env.local (see README.md).');
+    }
+    client = neon(process.env.DATABASE_URL);
+  }
+  return client;
+}
 
 export const ITEMS_PER_PAGE = 5;
 
@@ -18,7 +28,7 @@ const MAX_INT = 2_147_483_647;
  * fields of `SacramentMeeting`. `date::text` keeps the value as 'YYYY-MM-DD'
  * instead of letting the driver turn it into a time-zone-shifted Date.
  */
-const MEETING_COLUMNS = sql.unsafe(`
+const MEETING_COLUMNS = `
   id,
   date::text AS date,
   meeting_type AS "meetingType",
@@ -33,7 +43,7 @@ const MEETING_COLUMNS = sql.unsafe(`
   speakers,
   closing_hymn AS "closingHymn",
   closing_prayer AS "closingPrayer"
-`);
+`;
 
 /** Parses a route/query id; returns null unless it is a plain positive integer that fits the id column. */
 export function parseMeetingId(raw: string): number | null {
@@ -49,7 +59,7 @@ export function parseMeetingId(raw: string): number | null {
 function matchesQuery(query: string) {
   // Escape LIKE wildcards so "%" and "_" in the search box match literally.
   const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
-  return sql`(
+  return db()`(
     presiding ILIKE ${pattern} OR
     conducting ILIKE ${pattern} OR
     meeting_type ILIKE ${pattern} OR
@@ -68,8 +78,8 @@ function matchesQuery(query: string) {
 export async function getMeetings(query = '', currentPage = 1): Promise<SacramentMeeting[]> {
   const offset = (Math.max(1, currentPage) - 1) * ITEMS_PER_PAGE;
 
-  const rows = await sql`
-    SELECT ${MEETING_COLUMNS}
+  const rows = await db()`
+    SELECT ${db().unsafe(MEETING_COLUMNS)}
     FROM meetings
     WHERE ${matchesQuery(query)}
     ORDER BY date DESC
@@ -80,7 +90,7 @@ export async function getMeetings(query = '', currentPage = 1): Promise<Sacramen
 
 /** Number of pages `getMeetings` can return for `query` (0 when nothing matches). */
 export async function getMeetingsTotalPages(query = ''): Promise<number> {
-  const rows = await sql`
+  const rows = await db()`
     SELECT COUNT(*) AS count
     FROM meetings
     WHERE ${matchesQuery(query)}
@@ -89,7 +99,7 @@ export async function getMeetingsTotalPages(query = ''): Promise<number> {
 }
 
 export async function getMeetingById(id: number): Promise<SacramentMeeting | undefined> {
-  const rows = await sql`SELECT ${MEETING_COLUMNS} FROM meetings WHERE id = ${id}`;
+  const rows = await db()`SELECT ${db().unsafe(MEETING_COLUMNS)} FROM meetings WHERE id = ${id}`;
   return rows[0] as SacramentMeeting | undefined;
 }
 
@@ -99,8 +109,8 @@ export async function getMeetingById(id: number): Promise<SacramentMeeting | und
  * on or before today.
  */
 export async function getCurrentMeeting(now: Date = new Date()): Promise<SacramentMeeting | undefined> {
-  const rows = await sql`
-    SELECT ${MEETING_COLUMNS}
+  const rows = await db()`
+    SELECT ${db().unsafe(MEETING_COLUMNS)}
     FROM meetings
     WHERE date = ${currentSundayIso(now)} OR date <= ${todayIso(now)}
     ORDER BY date = ${currentSundayIso(now)} DESC, date DESC
