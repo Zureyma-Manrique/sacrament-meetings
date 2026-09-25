@@ -2,7 +2,29 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Database setup
+
+The app reads meetings from a PostgreSQL database on [Neon](https://neon.tech).
+
+1. Create a `.env.local` file in the project root with your Neon connection string:
+
+   ```bash
+   DATABASE_URL="postgresql://<user>:<password>@<host>/<database>?sslmode=require"
+   ```
+
+   `DATABASE_URL` is also required for `npm run build`. On Vercel, set it for both Production and Preview.
+
+2. Create the `meetings` table and sample data by running `db/schema.sql` once, in the Neon SQL editor or with:
+
+   ```bash
+   psql "$DATABASE_URL" -f db/schema.sql
+   ```
+
+   If your table was created from an older version of `schema.sql` (no `'special'` meeting type, `announcements` stored as JSONB), run `db/migrate-w03.sql` once instead.
+
+### Development server
+
+Run the development server:
 
 ```bash
 npm run dev
@@ -18,7 +40,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to load the Inter and Merriweather fonts.
 
 ## Learn More
 

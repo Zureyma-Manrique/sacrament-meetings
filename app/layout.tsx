@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const mainLinks: NavLink[] = [
     { href: '/', label: 'Home', exact: true },
     { href: '/meetings', label: 'Meetings' },
-    { href: getCurrentMeetingHref(), label: 'This Sunday', exact: true },
+    { href: await getCurrentMeetingHref(), label: 'This Sunday', exact: true },
   ];
 
   return (

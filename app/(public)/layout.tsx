@@ -2,13 +2,13 @@ import { connection } from 'next/server';
 import NavLinks, { type NavLink } from '@/components/NavLinks';
 import { getCurrentMeetingHref } from '@/lib/routes';
 
-export default async function MeetingsLayout({ children }: LayoutProps<'/meetings'>) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   // "Current program" depends on today's date, so resolve it per request.
   await connection();
 
   const meetingLinks: NavLink[] = [
     { href: '/meetings', label: 'All programs', exact: true },
-    { href: getCurrentMeetingHref(), label: 'Current program', exact: true },
+    { href: await getCurrentMeetingHref(), label: 'Current program', exact: true },
   ];
 
   return (
