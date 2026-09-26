@@ -119,21 +119,66 @@ export async function getCurrentMeeting(now: Date = new Date()): Promise<Sacrame
   return rows[0] as SacramentMeeting | undefined;
 }
 
-// Mutations are implemented in Week 04; the parameters document the planned signatures.
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/** Fields a meeting is created or updated with (everything but the generated id). */
+export type MeetingInput = Omit<SacramentMeeting, 'id'>;
 
-export async function addMeeting(_meeting: Omit<SacramentMeeting, 'id'>): Promise<SacramentMeeting> {
-  throw new Error('addMeeting is not implemented yet (Week 04).');
+/**
+ * Inserts a meeting and returns it with its new id. JSONB columns are sent as
+ * JSON strings and cast in SQL so the driver doesn't have to guess their type.
+ */
+export async function addMeeting(meeting: MeetingInput): Promise<SacramentMeeting> {
+  const rows = await db()`
+    INSERT INTO meetings (
+      date, meeting_type, presiding, conducting, announcements, opening_hymn, opening_prayer,
+      ward_business, stake_business, sacrament_hymn, speakers, closing_hymn, closing_prayer
+    ) VALUES (
+      ${meeting.date},
+      ${meeting.meetingType},
+      ${meeting.presiding},
+      ${meeting.conducting},
+      ${meeting.announcements ?? []}::text[],
+      ${JSON.stringify(meeting.openingHymn)}::jsonb,
+      ${meeting.openingPrayer},
+      ${JSON.stringify(meeting.wardBusiness)}::jsonb,
+      ${meeting.stakeBusiness},
+      ${JSON.stringify(meeting.sacramentHymn)}::jsonb,
+      ${JSON.stringify(meeting.speakers)}::jsonb,
+      ${JSON.stringify(meeting.closingHymn)}::jsonb,
+      ${meeting.closingPrayer}
+    )
+    RETURNING ${db().unsafe(MEETING_COLUMNS)}
+  `;
+  return rows[0] as SacramentMeeting;
 }
 
+/** Replaces every field of meeting `id`; returns the updated meeting, or undefined if it doesn't exist. */
 export async function updateMeeting(
-  _id: number,
-  _meeting: Omit<SacramentMeeting, 'id'>,
-): Promise<SacramentMeeting> {
-  throw new Error('updateMeeting is not implemented yet (Week 04).');
+  id: number,
+  meeting: MeetingInput,
+): Promise<SacramentMeeting | undefined> {
+  const rows = await db()`
+    UPDATE meetings SET
+      date = ${meeting.date},
+      meeting_type = ${meeting.meetingType},
+      presiding = ${meeting.presiding},
+      conducting = ${meeting.conducting},
+      announcements = ${meeting.announcements ?? []}::text[],
+      opening_hymn = ${JSON.stringify(meeting.openingHymn)}::jsonb,
+      opening_prayer = ${meeting.openingPrayer},
+      ward_business = ${JSON.stringify(meeting.wardBusiness)}::jsonb,
+      stake_business = ${meeting.stakeBusiness},
+      sacrament_hymn = ${JSON.stringify(meeting.sacramentHymn)}::jsonb,
+      speakers = ${JSON.stringify(meeting.speakers)}::jsonb,
+      closing_hymn = ${JSON.stringify(meeting.closingHymn)}::jsonb,
+      closing_prayer = ${meeting.closingPrayer}
+    WHERE id = ${id}
+    RETURNING ${db().unsafe(MEETING_COLUMNS)}
+  `;
+  return rows[0] as SacramentMeeting | undefined;
 }
 
-export async function deleteMeeting(_id: number): Promise<void> {
-  throw new Error('deleteMeeting is not implemented yet (Week 04).');
+/** Deletes meeting `id`; returns false if there was no such meeting. */
+export async function deleteMeeting(id: number): Promise<boolean> {
+  const rows = await db()`DELETE FROM meetings WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
 }
-/* eslint-enable @typescript-eslint/no-unused-vars */

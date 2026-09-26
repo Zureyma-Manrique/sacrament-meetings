@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Suspense } from 'react';
 import MeetingSearch from '@/components/MeetingSearch';
 import MeetingsList from '@/components/MeetingsList';
@@ -22,7 +23,12 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-heading text-3xl font-bold">Meeting Programs</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-heading text-3xl font-bold">Meeting Programs</h1>
+        <Link href="/meetings/new" className="btn">
+          Create meeting
+        </Link>
+      </div>
 
       <MeetingSearch placeholder="Try “Reyes”, “testimony”, or “2026-09”" />
 
