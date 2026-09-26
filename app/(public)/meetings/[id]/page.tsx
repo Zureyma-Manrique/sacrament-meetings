@@ -38,9 +38,12 @@ export default async function MeetingPage({ params }: PageProps<'/meetings/[id]'
           <p className="text-sm text-muted">{timing} program</p>
           <h1 className="font-heading text-3xl font-bold">Sacrament Meeting Program</h1>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link href="/meetings" className="btn-secondary">
             Back to all programs
+          </Link>
+          <Link href={`/meetings/${meeting.id}/edit`} className="btn-secondary">
+            Edit program
           </Link>
           <PrintButton />
         </div>
