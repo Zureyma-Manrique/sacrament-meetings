@@ -13,6 +13,8 @@
   --focus: #c47f17;
   --danger: #b42318;
   --danger-soft: #fdecea;
+  --font-inter: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-merriweather: 'Merriweather', Georgia, serif;
 }
 
 @theme inline {

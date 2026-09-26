@@ -1,23 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter, Merriweather } from 'next/font/google';
 import { connection } from 'next/server';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import NavLinks, { type NavLink } from '@/components/NavLinks';
 import { getCurrentMeetingHref } from '@/lib/routes';
 import { WARD_NAME } from '@/lib/site';
+// Self-hosted from npm rather than next/font/google, which fails in Vercel builds.
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/merriweather/latin-400.css';
+import '@fontsource/merriweather/latin-700.css';
 import './globals.css';
-
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-});
-
-const merriweather = Merriweather({
-  variable: '--font-merriweather',
-  subsets: ['latin'],
-  weight: ['400', '700'],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -38,7 +30,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
   ];
 
   return (
-    <html lang="en" className={`${inter.variable} ${merriweather.variable} h-full antialiased`}>
+    <html lang="en" className="h-full antialiased">
       <body className="flex min-h-full flex-col font-sans">
         <a
           href="#main-content"
