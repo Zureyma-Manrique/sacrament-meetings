@@ -6,9 +6,11 @@ import type { SacramentMeeting } from '@/lib/types';
 
 interface MeetingCardProps {
   meeting: SacramentMeeting;
+  /** Show Edit and Delete; only for a signed-in bishopric member. */
+  canManage?: boolean;
 }
 
-export default function MeetingCard({ meeting }: MeetingCardProps) {
+export default function MeetingCard({ meeting, canManage = false }: MeetingCardProps) {
   const dateLabel = formatMeetingDate(meeting.date);
   const speakerCount = meeting.speakers.filter((item) => item.type === 'speaker').length;
 
@@ -38,11 +40,15 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
           View program
           <span className="sr-only"> for {dateLabel}</span>
         </Link>
-        <Link href={`/meetings/${meeting.id}/edit`} className="btn-secondary ml-auto">
-          Edit
-          <span className="sr-only"> program for {dateLabel}</span>
-        </Link>
-        <DeleteMeetingButton id={meeting.id} label={dateLabel} />
+        {canManage && (
+          <>
+            <Link href={`/meetings/${meeting.id}/edit`} className="btn-secondary ml-auto">
+              Edit
+              <span className="sr-only"> program for {dateLabel}</span>
+            </Link>
+            <DeleteMeetingButton id={meeting.id} label={dateLabel} />
+          </>
+        )}
       </div>
     </article>
   );

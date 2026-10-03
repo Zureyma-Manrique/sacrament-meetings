@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { auth } from '@/auth';
 import MeetingSearch from '@/components/MeetingSearch';
 import MeetingsList from '@/components/MeetingsList';
 import MeetingsListSkeleton from '@/components/MeetingsListSkeleton';
@@ -9,6 +10,8 @@ import { getMeetingsTotalPages } from '@/lib/meetings-db';
 
 export const metadata: Metadata = {
   title: 'Meeting Programs',
+  description:
+    'Browse and search past and upcoming sacrament meeting programs by leader, speaker, topic, meeting type, or date.',
 };
 
 export default async function MeetingsPage({ searchParams }: PageProps<'/meetings'>) {
@@ -17,7 +20,7 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
   // Anything that isn't a positive integer ("abc", "0", "-1") falls back to the first page.
   const currentPage = typeof rawPage === 'string' && /^[1-9]\d*$/.test(rawPage) ? Number(rawPage) : 1;
 
-  const totalPages = await getMeetingsTotalPages(query);
+  const [totalPages, session] = await Promise.all([getMeetingsTotalPages(query), auth()]);
   // Past the last page (e.g. ?page=99), show the last page instead of an empty list.
   const page = Math.min(currentPage, Math.max(totalPages, 1));
 
@@ -25,9 +28,11 @@ export default async function MeetingsPage({ searchParams }: PageProps<'/meeting
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-heading text-3xl font-bold">Meeting Programs</h1>
-        <Link href="/meetings/new" className="btn">
-          Create meeting
-        </Link>
+        {session?.user && (
+          <Link href="/meetings/new" className="btn">
+            Create meeting
+          </Link>
+        )}
       </div>
 
       <MeetingSearch placeholder="Try “Reyes”, “testimony”, or “2026-09”" />
