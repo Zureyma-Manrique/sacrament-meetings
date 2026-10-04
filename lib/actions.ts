@@ -1,9 +1,12 @@
 'use server';
 
+import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { auth, signIn, signOut } from '@/auth';
 import { isIsoDate } from './dates';
+import type { LoginState } from './login-state';
 import type { MeetingFormState, MeetingFormValues } from './meeting-form';
 import * as meetingsDb from './meetings-db';
 import type { MeetingType } from './types';
@@ -153,6 +156,16 @@ function validate(
 }
 
 /** Bound ids come from the client, so check them like any other input. */
+/**
+ * Mutations change ward data, so each one checks for a signed-in bishopric
+ * member itself: proxy.ts only guards the pages, not the actions behind them.
+ */
+async function requireSession() {
+  const session = await auth();
+  if (!session?.user) redirect('/login');
+  return session;
+}
+
 function checkId(id: number): number {
   const parsed = meetingsDb.parseMeetingId(String(id));
   if (parsed === null) throw new Error('Invalid meeting id.');
@@ -160,6 +173,7 @@ function checkId(id: number): number {
 }
 
 export async function createMeeting(_prevState: MeetingFormState, formData: FormData): Promise<MeetingFormState> {
+  await requireSession();
   const validated = validate(formData);
   if (!validated.success) return validated.state;
 
@@ -180,6 +194,7 @@ export async function updateMeeting(
   _prevState: MeetingFormState,
   formData: FormData,
 ): Promise<MeetingFormState> {
+  await requireSession();
   const meetingId = checkId(id);
   const validated = validate(formData);
   if (!validated.success) return validated.state;
@@ -206,6 +221,7 @@ export async function updateMeeting(
 }
 
 export async function deleteMeeting(id: number): Promise<void> {
+  await requireSession();
   const meetingId = checkId(id);
 
   try {
@@ -217,4 +233,35 @@ export async function deleteMeeting(id: number): Promise<void> {
 
   // No redirect: deleting from the list keeps the current search and page.
   revalidatePath('/meetings');
+}
+
+/** Only same-site paths, so the login form can't be used to send people to another site. */
+function safeRedirectPath(value: FormDataEntryValue | null): string {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/meetings';
+  return value;
+}
+
+/** Login form action: redirects on success, or returns an error and the email to refill the form with. */
+export async function authenticate(_prevState: LoginState, formData: FormData): Promise<LoginState> {
+  const email = typeof formData.get('email') === 'string' ? (formData.get('email') as string) : '';
+  try {
+    await signIn('credentials', {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      redirectTo: safeRedirectPath(formData.get('redirectTo')),
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      const message =
+        error.type === 'CredentialsSignin' ? 'Invalid email or password.' : 'Something went wrong. Please try again.';
+      return { message, email };
+    }
+    // A successful sign-in redirects by throwing; let Next.js handle it.
+    throw error;
+  }
+  return {};
+}
+
+export async function signOutAction(): Promise<void> {
+  await signOut({ redirectTo: '/' });
 }

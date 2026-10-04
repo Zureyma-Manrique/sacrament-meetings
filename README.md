@@ -22,6 +22,26 @@ The app reads meetings from a PostgreSQL database on [Neon](https://neon.tech).
 
    If your table was created from an older version of `schema.sql` (no `'special'` meeting type, `announcements` stored as JSONB), run `db/migrate-w03.sql` once instead.
 
+### Authentication (Week 05)
+
+Bishopric members sign in with Auth.js (email and password) to create, edit, or delete meetings. Everyone else can still browse and print programs.
+
+1. Add an `AUTH_SECRET` to `.env.local` (and to Vercel for Production and Preview). Generate one with:
+
+   ```bash
+   npx auth secret
+   ```
+
+2. Create the `users` table and a demo account by running `db/migrate-w05.sql` once, in the Neon SQL editor or with:
+
+   ```bash
+   psql "$DATABASE_URL" -f db/migrate-w05.sql
+   ```
+
+   Demo sign-in: `bishop@maplegrove.test` / `Sacrament2026!`. The SQL file explains how to add real accounts.
+
+`/meetings/new` and `/meetings/[id]/edit` are protected by `proxy.ts`, and every create, update, and delete Server Action checks the session again on the server.
+
 ### Development server
 
 Run the development server:

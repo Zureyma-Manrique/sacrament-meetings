@@ -1,3 +1,4 @@
+import { auth } from '@/auth';
 import MeetingCard from '@/components/MeetingCard';
 import { getMeetings } from '@/lib/meetings-db';
 
@@ -7,7 +8,7 @@ interface MeetingsListProps {
 }
 
 export default async function MeetingsList({ query, currentPage }: MeetingsListProps) {
-  const meetings = await getMeetings(query, currentPage);
+  const [meetings, session] = await Promise.all([getMeetings(query, currentPage), auth()]);
 
   if (meetings.length === 0) {
     return (
@@ -21,7 +22,7 @@ export default async function MeetingsList({ query, currentPage }: MeetingsListP
     <ul className="grid gap-4 sm:grid-cols-2">
       {meetings.map((meeting) => (
         <li key={meeting.id}>
-          <MeetingCard meeting={meeting} />
+          <MeetingCard meeting={meeting} canManage={Boolean(session?.user)} />
         </li>
       ))}
     </ul>

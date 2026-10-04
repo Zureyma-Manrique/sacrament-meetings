@@ -11,12 +11,42 @@ import '@fontsource/merriweather/latin-400.css';
 import '@fontsource/merriweather/latin-700.css';
 import './globals.css';
 
+const SITE_DESCRIPTION = `Plan, view, and print sacrament meeting programs for the ${WARD_NAME}: hymns, prayers, speakers, announcements, and ward business.`;
+
+const OG_IMAGE = {
+  url: '/og-image.png',
+  width: 1200,
+  height: 630,
+  alt: `${WARD_NAME} Sacrament Meeting Planner: plan, view, and print weekly sacrament meeting programs, with an illustration of a white chapel.`,
+};
+
+// Absolute base for Open Graph image URLs. Vercel sets the production domain; locally it's localhost.
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: `Sacrament Meeting Planner | ${WARD_NAME}`,
     template: `%s | ${WARD_NAME}`,
   },
-  description: `Plan, view, and print sacrament meeting programs for the ${WARD_NAME}.`,
+  description: SITE_DESCRIPTION,
+  applicationName: 'Sacrament Meeting Planner',
+  keywords: ['sacrament meeting', 'program', 'bishopric', 'ward', WARD_NAME],
+  // Preview image for shared links (public/og-image.png). Child pages that set their own openGraph carry it over.
+  openGraph: {
+    type: 'website',
+    siteName: `${WARD_NAME} Sacrament Meeting Planner`,
+    title: `Sacrament Meeting Planner | ${WARD_NAME}`,
+    description: SITE_DESCRIPTION,
+    locale: 'en_US',
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: [OG_IMAGE],
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {
